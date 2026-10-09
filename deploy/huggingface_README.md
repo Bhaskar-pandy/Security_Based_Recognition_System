@@ -6,6 +6,7 @@ colorTo: indigo
 sdk: docker
 app_port: 7860
 pinned: false
+short_description: Face-recognition access control with liveness detection
 ---
 
 Face-recognition access control with liveness detection. Demo deployment: data is not persistent, use test faces only.
