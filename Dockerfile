@@ -1,8 +1,9 @@
 FROM python:3.11-slim
 
-# Build tools for dlib; libGL/glib for OpenCV and MediaPipe
+# libGL/glib are needed by OpenCV and MediaPipe. No compiler: dlib comes as a prebuilt wheel,
+# because compiling it needs several GB of RAM and fails on small build machines.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential cmake libgl1 libglib2.0-0 \
+        libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root user (required by Hugging Face Spaces)
@@ -10,7 +11,11 @@ RUN useradd -m -u 1000 appuser
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN grep -viE '^(cmake|dlib|face_recognition)' requirements.txt > requirements-docker.txt \
+    && pip install --no-cache-dir -r requirements-docker.txt \
+    && pip install --no-cache-dir dlib-bin \
+    && pip install --no-cache-dir --no-deps face_recognition \
+    && pip install --no-cache-dir face_recognition_models Click Pillow
 
 COPY --chown=appuser:appuser . .
 RUN mkdir -p /app/data && chown appuser:appuser /app/data
