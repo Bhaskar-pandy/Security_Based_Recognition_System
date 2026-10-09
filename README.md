@@ -106,6 +106,25 @@ Open **http://127.0.0.1:5000** and allow camera access.
 
 > Change the default admin password immediately and do not expose the app without HTTPS.
 
+## Deployment (Hugging Face Spaces)
+
+The repository includes a `Dockerfile` (gunicorn, single worker, port 7860) for a Docker Space.
+
+1. Create a new Space at huggingface.co/new-space, SDK **Docker**, blank template.
+2. Add the Space as a remote and push, replacing the Space README with the template that carries the required metadata:
+   ```bash
+   git remote add space https://huggingface.co/spaces/<username>/<space-name>
+   git checkout -b space-deploy
+   cp deploy/huggingface_README.md README.md
+   git commit -am "Space metadata"
+   git push space space-deploy:main --force
+   git checkout main
+   ```
+   Use a Hugging Face access token (write scope) as the password.
+3. Open `https://<username>-<space-name>.hf.space` (HTTPS is required for camera access), log in as the default admin and change the password.
+
+Free Spaces have an ephemeral disk: users, faces and logs reset on restart. Use test data only.
+
 ## Roles
 
 | Role | Permissions |

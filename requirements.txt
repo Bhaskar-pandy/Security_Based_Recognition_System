@@ -1,6 +1,7 @@
 Flask
-opencv-python
-numpy
+gunicorn
+opencv-python==4.11.0.86
+numpy<2
 cryptography
 setuptools<81
 cmake

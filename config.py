@@ -2,14 +2,14 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
+DATA_DIR = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
 DB_PATH = os.path.join(DATA_DIR, "app.db")                 # SQLite database file
 KEY_PATH = os.path.join(DATA_DIR, "secret.key")            # face-data encryption key
 FLASK_KEY_PATH = os.path.join(DATA_DIR, "flask_secret.key")  # login-cookie signing key
 
 # --- Web server ---
-HOST = "127.0.0.1"         # only this computer. Use "0.0.0.0" to allow the LAN (needs HTTPS for camera)
-PORT = 5000
+HOST = os.environ.get("HOST", "127.0.0.1")   # "0.0.0.0" to allow other machines (camera then needs HTTPS)
+PORT = int(os.environ.get("PORT", "5000"))
 MAX_REQUEST_BYTES = 2 * 1024 * 1024   # reject uploads bigger than 2 MB
 
 # --- Accounts ---
