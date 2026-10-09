@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Door Access{% endblock %}
+{% block content %}
+<div class="card auth auth-wide">
+  <div class="auth-head">
+    <div class="auth-icon">🚪</div>
+    <h1>Door access</h1>
+    <p class="muted">For entering only &mdash; this does not sign you in to the website. Want to manage your account? <a href="{{ url_for('login') }}">Sign in</a>.</p>
+  </div>
+  <div class="scanner" id="scanner" data-state="idle">
+    <video id="video" playsinline muted></video><canvas id="overlay"></canvas>
+    <div class="scanner-idle"><div class="oval"></div><span>Camera is off</span></div>
+  </div>
+  <div class="status-pill" id="status" data-kind="info">Ready when you are</div>
+  <button type="button" id="startBtn" class="block">Start</button>
+  <ul class="hints muted">
+    <li>Look at the camera and follow the instructions (blink, turn your head, smile…).</li>
+    <li>If you registered a hand, show your open palm next.</li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const video = document.getElementById("video"), overlay = document.getElementById("overlay");
+const scanner = document.getElementById("scanner"), statusEl = document.getElementById("status"), startBtn = document.getElementById("startBtn");
+function show(text, kind) { statusEl.textContent = text; statusEl.dataset.kind = kind || "info"; }
+
+startBtn.onclick = async () => {
+  startBtn.disabled = true; scanner.dataset.state = "live";
+  const r = await runAccessCheck(video, overlay, "door", (text, kind) => {
+    show(kind === "granted" ? "✅ ACCESS GRANTED – " + text : kind === "denied" ? "⛔ ACCESS DENIED – " + text : text, kind);
+  });
+  scanner.dataset.state = r.state === "granted" ? "ok" : "idle";
+  startBtn.disabled = false; startBtn.textContent = "Try again";
+};
+</script>
+{% endblock %}

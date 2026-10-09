@@ -1,0 +1,15 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Runtime data: databases and encryption/signing keys (never commit)
+data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Account</h1><p class="muted" style="margin:0">{{ current_user.full_name }} &middot; {{ current_user.username }}</p></div>
+  <span class="badge {{ current_user.status }}">{{ current_user.role|capitalize }}</span></div>
+
+<div class="card">
+  <h2>Sign-in methods</h2>
+  <p class="muted">Use whichever is quicker. Either one signs you in &mdash; you never need both.</p>
+  <ul class="method-list">
+    <li>
+      <div class="method-icon">🔑</div>
+      <div class="method-body"><b>Password</b><span class="muted">Always available as a backup.</span></div>
+      <a class="btn small grey" href="{{ url_for('change_password') }}">Change</a>
+    </li>
+    <li>
+      <div class="method-icon">🙂</div>
+      <div class="method-body"><b>Face</b>
+        <span class="muted">{% if has_face %}Set up &mdash; sign in with a quick look at the camera.{% else %}Not set up. Takes about 10 seconds.{% endif %}</span></div>
+      {% if has_face %}<span class="tick">✓ On</span>{% endif %}
+      <a class="btn small {{ 'grey' if has_face else '' }}" href="{{ url_for('enroll', user_id=current_user.id) }}">{{ 'Update' if has_face else 'Set up' }}</a>
+    </li>
+    <li>
+      <div class="method-icon">✋</div>
+      <div class="method-body"><b>Hand check <span class="tag">optional</span></b>
+        <span class="muted">{% if has_hand %}On &mdash; face sign-in will also ask for your open palm.{% else %}Adds an extra palm check after your face.{% endif %}</span></div>
+      {% if has_hand %}<span class="tick">✓ On</span>{% endif %}
+      {% if has_face %}<a class="btn small grey" href="{{ url_for('enroll_hand', user_id=current_user.id) }}">{{ 'Update' if has_hand else 'Set up' }}</a>
+      {% else %}<span class="muted small">Set up Face first</span>{% endif %}
+    </li>
+  </ul>
+  {% if current_user.role == 'user' and has_face and current_user.status != 'approved' %}
+  <p class="muted small" style="margin-top:14px">Face sign-in and door access start working once an admin approves your account. Until then, use your password.</p>
+  {% endif %}
+</div>
+{% endblock %}

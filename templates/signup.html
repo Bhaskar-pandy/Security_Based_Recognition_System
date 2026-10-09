@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<div class="card auth">
+  <ol class="stepper compact">
+    <li class="now"><span class="dot">1</span><div><b>Account</b></div></li>
+    <li><span class="dot">2</span><div><b>Face</b></div></li>
+    <li><span class="dot">3</span><div><b>Approval</b></div></li>
+  </ol>
+  <h1>Create your account</h1>
+  <p class="muted">Your password is the backup; face will be your quick way in.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label>Full name <input type="text" name="full_name" required></label>
+    <label>Username <input type="text" name="username" autocomplete="username" required></label>
+    <label>Password (min 8 characters) <input type="password" name="password" autocomplete="new-password" required></label>
+    <label>Confirm password <input type="password" name="confirm" autocomplete="new-password" required></label>
+    <button class="block">Continue</button>
+  </form>
+  <p class="muted auth-foot">Already registered? <a href="{{ url_for('login') }}">Sign in</a></p>
+</div>
+{% endblock %}

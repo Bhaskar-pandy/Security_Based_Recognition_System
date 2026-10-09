@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Users</h1><a class="btn" href="{{ url_for('admin_new_user') }}">+ Add user</a></div>
+<div class="card">
+  <div class="table-wrap"><table>
+    <tr><th>Name</th><th>Username</th><th>Status</th><th>Face</th><th>Hand</th><th>Created</th><th>Actions</th></tr>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.full_name }}</td><td>{{ u.username }}</td>
+      <td><span class="badge {{ u.status }}">{{ u.status }}</span></td>
+      <td>{{ '✅' if u.has_face else '—' }}</td><td>{{ '✅' if u.has_hand else '—' }}</td><td>{{ u.created_at }}</td>
+      <td class="actions">
+        <a class="btn small" href="{{ url_for('enroll', user_id=u.id) }}">{{ 'Re-capture face' if u.has_face else 'Capture face' }}</a>
+        {% if u.has_face %}<a class="btn small grey" href="{{ url_for('enroll_hand', user_id=u.id) }}">{{ 'Re-capture hand' if u.has_hand else 'Capture hand' }}</a>{% endif %}
+        {% if u.status != 'approved' %}
+        <form method="post" action="{{ url_for('admin_user_action', user_id=u.id, action='approve') }}" class="inline">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><button class="small ok">Approve</button></form>{% endif %}
+        {% if u.status != 'rejected' %}
+        <form method="post" action="{{ url_for('admin_user_action', user_id=u.id, action='reject') }}" class="inline">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><button class="small grey">Reject</button></form>{% endif %}
+        <form method="post" action="{{ url_for('admin_user_action', user_id=u.id, action='reset-password') }}" class="inline"
+              onsubmit="this.password.value = prompt('Temporary password for {{ u.username }} (min 8 characters):') || ''; return this.password.value !== '';">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="password"><button class="small grey">Reset password</button></form>
+        <form method="post" action="{{ url_for('admin_user_action', user_id=u.id, action='delete') }}" class="inline"
+              onsubmit="return confirm('Delete {{ u.username }} permanently?');">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><button class="small bad">Delete</button></form>
+      </td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="muted">No users yet.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}

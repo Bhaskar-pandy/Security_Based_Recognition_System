@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Hello, {{ current_user.full_name.split(' ')[0] }} 👋</h1>
+  <p class="muted" style="margin:0">Here is where your account stands.</p></div>
+  <a class="btn grey" href="{{ url_for('account') }}">Sign-in methods</a></div>
+
+{% set s = current_user.status %}
+<div class="card">
+  <ol class="stepper">
+    <li class="done"><span class="dot">✓</span><div><b>Account created</b><small>You are signed in</small></div></li>
+    <li class="{{ 'done' if has_face else 'now' }}"><span class="dot">{{ '✓' if has_face else '2' }}</span><div><b>Register your face</b><small>{{ 'Done' if has_face else 'About 10 seconds' }}</small></div></li>
+    <li class="{{ 'done' if s == 'approved' else ('now' if has_face else '') }}"><span class="dot">{{ '✓' if s == 'approved' else '3' }}</span><div><b>Admin approval</b><small>{{ 'Approved' if s == 'approved' else ('Rejected' if s == 'rejected' else 'Waiting') }}</small></div></li>
+  </ol>
+
+  {% if not has_face %}
+    <div class="callout"><div><b>Next: register your face</b><p class="muted" style="margin:2px 0 0">An admin can only approve you after this.</p></div>
+      <a class="btn" href="{{ url_for('enroll', user_id=current_user.id) }}">Register face</a></div>
+  {% elif s == 'pending' %}
+    <div class="callout wait"><div><b>Waiting for an admin to approve you</b><p class="muted" style="margin:2px 0 0">Until then, face sign-in and door access are off. Your password works.</p></div></div>
+  {% elif s == 'rejected' %}
+    <div class="callout bad"><div><b>Your request was rejected</b><p class="muted" style="margin:2px 0 0">Contact the admin, or register your face again to re-apply.</p></div>
+      <a class="btn" href="{{ url_for('enroll', user_id=current_user.id) }}">Register again</a></div>
+  {% else %}
+    <div class="callout ok"><div><b>You're all set</b><p class="muted" style="margin:2px 0 0">Use your face or password to sign in, and the door kiosk to enter.</p></div>
+      <a class="btn grey" href="{{ url_for('access') }}">Door access</a></div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>My access history</h2>
+  {% if logs %}
+  <div class="table-wrap"><table>
+    <tr><th>Time</th><th>Result</th><th>Reason</th></tr>
+    {% for l in logs %}<tr><td>{{ l.time }}</td><td><span class="badge {{ l.result }}">{{ l.result }}</span></td><td>{{ l.reason }}</td></tr>{% endfor %}
+  </table></div>
+  {% else %}<p class="muted">No access attempts yet.</p>{% endif %}
+</div>
+{% endblock %}

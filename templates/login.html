@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<div class="card auth auth-wide">
+  <div class="auth-head">
+    <div class="auth-icon">🔐</div>
+    <h1>Welcome back</h1>
+    <p class="muted">Choose how you want to sign in. One step is enough.</p>
+  </div>
+
+  <div class="segmented" role="tablist" aria-label="Sign-in method">
+    <button type="button" role="tab" id="tab-face" aria-controls="panel-face" class="seg">🙂 Face</button>
+    <button type="button" role="tab" id="tab-password" aria-controls="panel-password" class="seg">🔑 Password</button>
+  </div>
+
+  <section id="panel-face" role="tabpanel" aria-labelledby="tab-face" hidden>
+    <div class="scanner" id="scanner" data-state="idle">
+      <video id="video" playsinline muted></video><canvas id="overlay"></canvas>
+      <div class="scanner-idle"><div class="oval"></div><span>Camera is off</span></div>
+    </div>
+    <div class="status-pill" id="status" data-kind="info">Ready when you are</div>
+    <button type="button" id="startBtn" class="block">Start face sign-in</button>
+    <ul class="hints muted">
+      <li>Good light, only one face in view.</li>
+      <li>You will be asked for a couple of quick actions (blink, turn, smile) to prove you are really there.</li>
+    </ul>
+  </section>
+
+  <section id="panel-password" role="tabpanel" aria-labelledby="tab-password" hidden>
+    <form method="post" class="stack">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label>Username <input type="text" name="username" autocomplete="username" required></label>
+      <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="block">Sign in</button>
+    </form>
+    <p class="muted small">Face sign-in not set up yet? Sign in with your password, then add Face under <b>Account</b>.</p>
+  </section>
+
+  <p class="muted auth-foot">New here? <a href="{{ url_for('signup') }}">Create an account</a> &middot; <a href="{{ url_for('access') }}">Door access (no sign-in)</a></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const NEXT_URL = {{ next_url|tojson }};
+const tabs = { face: document.getElementById("tab-face"), password: document.getElementById("tab-password") };
+const panels = { face: document.getElementById("panel-face"), password: document.getElementById("panel-password") };
+const video = document.getElementById("video"), overlay = document.getElementById("overlay");
+const scanner = document.getElementById("scanner"), statusEl = document.getElementById("status"), startBtn = document.getElementById("startBtn");
+
+function pick(method, remember) {
+  for (const k in tabs) {
+    tabs[k].classList.toggle("on", k === method); tabs[k].setAttribute("aria-selected", k === method);
+    panels[k].hidden = k !== method;
+  }
+  if (remember) { try { localStorage.setItem("signin-method", method); } catch (e) {} }
+  if (method === "password") panels.password.querySelector("input").focus();
+}
+tabs.face.onclick = () => pick("face", true);
+tabs.password.onclick = () => pick("password", true);
+let saved = null; try { saved = localStorage.getItem("signin-method"); } catch (e) {}
+pick(saved === "password" ? "password" : "face", false);
+{% if get_flashed_messages() %}pick("password", false);{% endif %}
+
+function show(text, kind) { statusEl.textContent = text; statusEl.dataset.kind = kind || "info"; }
+
+startBtn.onclick = async () => {
+  startBtn.disabled = true; scanner.dataset.state = "live";
+  const r = await runAccessCheck(video, overlay, "login", (text, kind) => {
+    show(kind === "granted" ? "✅ Signed in. Redirecting…" : kind === "denied" ? "⛔ " + text : text, kind);
+  }, NEXT_URL);
+  scanner.dataset.state = r.state === "granted" ? "ok" : "idle";
+  if (r.state === "granted" && r.redirect) { setTimeout(() => location.href = r.redirect, 600); return; }
+  startBtn.disabled = false; startBtn.textContent = "Try again";
+  if (r.state !== "granted") show((statusEl.textContent || "") + " You can also use your password.", "denied");
+};
+</script>
+{% endblock %}

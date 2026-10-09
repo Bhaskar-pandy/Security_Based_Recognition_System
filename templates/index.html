@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card hero">
+  <h1>Face Recognition Access Control</h1>
+  <p class="muted lead">Only registered, approved people get in &mdash; and only if they are really present (random liveness challenges).</p>
+  <div class="cta-row">
+    <a class="btn" href="{{ url_for('login') }}">Sign in</a>
+    <a class="btn grey" href="{{ url_for('access') }}">Door access</a>
+  </div>
+  <p class="muted small" style="margin-top:14px">Sign in with your <b>face or password</b> &mdash; whichever is quicker. Admins too.</p>
+  <div class="grid">
+    <div class="card feature"><div class="feature-icon">👤</div><h2>Users</h2>
+      <p class="muted">Sign up, register your face, then wait for admin approval. See your own access history.</p>
+      <div class="links"><a href="{{ url_for('signup') }}">Create account</a> &middot; <a href="{{ url_for('login') }}">Sign in</a></div></div>
+    <div class="card feature"><div class="feature-icon">🛡️</div><h2>Admin</h2>
+      <p class="muted">Approve users, register or delete them, monitor every attempt and export logs.</p>
+      <div class="links"><a href="{{ url_for('login') }}">Admin sign in</a></div></div>
+    <div class="card feature"><div class="feature-icon">👁️</div><h2>Anti-spoofing</h2>
+      <p class="muted">Every attempt asks for random actions &mdash; blink, turn your head, smile, open your mouth. A photo or a recorded video cannot know what will be asked.</p></div>
+  </div>
+</div>
+{% endblock %}

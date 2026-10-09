@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf" content="{{ csrf }}">
+  <title>{% block title %}Security Based Recognition System{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  {% set ep = request.endpoint %}
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">🔐</span>Face Security</a>
+      <nav>
+        {% if not current_user or current_user.role != 'admin' %}<a href="{{ url_for('access') }}" class="{{ 'active' if ep == 'access' }}">Door Access</a>{% endif %}
+        {% if current_user %}
+          {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if ep == 'admin_dashboard' }}">Dashboard</a>
+            <a href="{{ url_for('admin_users') }}" class="{{ 'active' if ep in ('admin_users', 'admin_new_user') }}">Users</a>
+            <a href="{{ url_for('admin_logs') }}" class="{{ 'active' if ep == 'admin_logs' }}">Logs</a>
+          {% else %}
+            <a href="{{ url_for('my_account') }}" class="{{ 'active' if ep == 'my_account' }}">Home</a>
+          {% endif %}
+          <a href="{{ url_for('account') }}" class="{{ 'active' if ep in ('account', 'change_password', 'enroll', 'enroll_hand') and (current_user.role != 'admin' or ep in ('account','change_password') or request.view_args.get('user_id') == current_user.id) }}">Account</a>
+          <form method="post" action="{{ url_for('logout') }}" class="inline">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="link" title="Signed in as {{ current_user.username }}">Sign out</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="{{ 'active' if ep == 'login' }}">Sign in</a>
+          <a href="{{ url_for('signup') }}" class="nav-cta">Sign up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">Face Security &middot; Secure, liveness-verified access control</footer>
+
+  <script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

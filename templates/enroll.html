@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Register face{% endblock %}
+{% block content %}
+<div class="card auth auth-wide">
+  {% if SELF and current_user.role == 'user' and current_user.status == 'pending' and target.face_data is none %}
+  <ol class="stepper compact">
+    <li class="done"><span class="dot">✓</span><div><b>Account</b></div></li>
+    <li class="now"><span class="dot">2</span><div><b>Face</b></div></li>
+    <li><span class="dot">3</span><div><b>Approval</b></div></li>
+  </ol>
+  {% endif %}
+  <div class="auth-head">
+    <h1>{{ 'Set up face sign-in' if SELF else 'Register face: ' ~ target.full_name }}</h1>
+    <p class="muted">Look straight at the camera in good light, alone in the frame. We take {{ needed }} quick samples &mdash; no photo is stored, only a numeric template.</p>
+  </div>
+  <div class="scanner" id="scanner" data-state="idle">
+    <video id="video" playsinline muted></video><canvas id="overlay"></canvas>
+    <div class="scanner-idle"><div class="oval"></div><span>Camera is off</span></div>
+  </div>
+  <div class="status-pill" id="status" data-kind="info">Ready when you are</div>
+  <div class="bar"><div id="progress"></div></div>
+  <button type="button" id="startBtn" class="block">Start capture</button>
+  <p class="center" id="after" style="margin-top:16px" hidden></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const NEEDED = {{ needed }}, USER_ID = {{ target.id }};
+const SELF = {{ 'true' if SELF else 'false' }}, IS_ADMIN = {{ 'true' if current_user.role == 'admin' else 'false' }};
+const video = document.getElementById("video"), overlay = document.getElementById("overlay");
+const statusEl = document.getElementById("status"), startBtn = document.getElementById("startBtn");
+const progress = document.getElementById("progress"), after = document.getElementById("after");
+
+const scanner = document.getElementById("scanner");
+function show(text, cls) { statusEl.textContent = text; statusEl.dataset.kind = cls === "granted" ? "granted" : cls === "denied" ? "denied" : "info"; }
+
+startBtn.onclick = async () => {
+  startBtn.disabled = true; scanner.dataset.state = "live"; show("Starting camera..."); progress.style.width = "0";
+  let stream = null;
+  try {
+    stream = await startCamera(video);
+    await postJSON("/api/enroll/" + USER_ID + "/start");
+    while (true) {
+      const r = await postJSON("/api/enroll/" + USER_ID + "/frame", { image: grabFrame(video) });
+      if (r.state === "done") {
+        drawBox(overlay, null); progress.style.width = "100%"; show("✅ Face registered", "granted");
+        after.hidden = false;
+        scanner.dataset.state = "ok";
+        after.innerHTML = !SELF ? '<a class="btn" href="/admin/users">Back to users</a>'
+          : IS_ADMIN ? 'Face sign-in is on. <a class="btn" href="/account">Done</a>'
+          : 'Saved. An admin will approve you soon &mdash; until then sign in with your password. <a class="btn" href="/me">Continue</a>';
+        break;
+      }
+      if (r.state === "error") { drawBox(overlay, null); show(r.message, "denied"); break; }
+      drawBox(overlay, r.box); show(r.message);
+      progress.style.width = (100 * (r.count || 0) / NEEDED) + "%";
+      await sleep(60);
+    }
+  } catch (e) {
+    show(e.message, "denied");
+  } finally {
+    stopCamera(stream, video); if (scanner.dataset.state !== "ok") scanner.dataset.state = "idle";
+    startBtn.disabled = false; startBtn.textContent = "Capture again";
+  }
+};
+</script>
+{% endblock %}

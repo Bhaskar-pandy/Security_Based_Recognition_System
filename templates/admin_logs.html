@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Access logs{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Access logs</h1></div>
+<div class="card">
+  <form method="get" class="filters">
+    <label>Result
+      <select name="result">
+        <option value="">All</option>
+        <option value="GRANTED" {{ 'selected' if result == 'GRANTED' }}>Granted</option>
+        <option value="DENIED" {{ 'selected' if result == 'DENIED' }}>Denied</option>
+      </select></label>
+    <label>Name <input type="search" name="search" value="{{ search }}" placeholder="search name"></label>
+    <button>Filter</button>
+    <a class="btn grey" href="{{ url_for('admin_logs_csv', result=result, search=search) }}">Download CSV</a>
+  </form>
+  <div class="table-wrap"><table>
+    <tr><th>Time</th><th>Name</th><th>Result</th><th>Reason</th></tr>
+    {% for l in logs %}<tr><td>{{ l.time }}</td><td>{{ l.name }}</td><td><span class="badge {{ l.result }}">{{ l.result }}</span></td><td>{{ l.reason }}</td></tr>
+    {% else %}<tr><td colspan="4" class="muted">No records.</td></tr>{% endfor %}
+  </table></div>
+  <p class="muted">Showing up to 500 newest records.</p>
+</div>
+{% endblock %}

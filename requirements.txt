@@ -1,0 +1,9 @@
+Flask
+opencv-python
+numpy
+cryptography
+setuptools<81
+cmake
+dlib
+face_recognition
+mediapipe==0.10.21   # hand geometry (needs numpy<2)
